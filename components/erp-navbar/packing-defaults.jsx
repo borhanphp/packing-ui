@@ -1,0 +1,85 @@
+"use client";
+
+/**
+ * Demo / default menus for Packing MTS — replace or pass modules via ErpNavbar props in another project.
+ */
+
+import {
+  FlaskConical,
+  HelpCircle,
+  LayoutDashboard,
+  Package,
+  Settings2,
+  Ticket,
+  Users,
+  Waypoints,
+} from "lucide-react";
+
+/** Default sites for the packing shell — override via `SiteProvider` props. */
+export const PACKING_SITES = [
+  { id: "melbourne", label: "Melbourne" },
+  { id: "sydney", label: "Sydney" },
+  { id: "brisbane", label: "Brisbane" },
+];
+
+export const PACKING_NAV_DEFAULT_UI = {
+  brandTitle: "Clutch.",
+  brandSubtitle: "Australia",
+  brandIconSrc: "/clutch-mark.png",
+  userName: "Alec Stead",
+  userEmail: "ops@packing.local",
+  userInitials: "AS",
+  avatarSrc: "",
+  accountSettingsHref: "/system-settings",
+};
+
+export const PACKING_NAV_MODULES = [
+  {
+    name: "Home",
+    href: "/",
+    icon: <LayoutDashboard className="size-5" strokeWidth={1.5} />,
+    children: [
+      { name: "Overview", href: "/" },
+      { name: "Reference data", href: "/reference-data" },
+      { name: "System settings", href: "/system-settings" },
+    ],
+  },
+  {
+    name: "Packing schedule",
+    href: "/packing-schedule",
+    icon: <Package className="size-5" strokeWidth={1.5} />,
+  },
+  {
+    name: "Packers schedule",
+    href: "/packers-schedule",
+    icon: <Users className="size-5" strokeWidth={1.5} />,
+  },
+  {
+    name: "Ticketing",
+    href: "/ticketing",
+    icon: <Ticket className="size-5" strokeWidth={1.5} />,
+  },
+  {
+    name: "Transactions",
+    href: "/transactions",
+    icon: <Waypoints className="size-5" strokeWidth={1.5} />,
+  },
+  {
+    name: "Fumigation",
+    href: "/fumigation",
+    icon: <FlaskConical className="size-5" strokeWidth={1.5} />,
+  },
+];
+
+export const PACKING_NAV_FOOTER = [
+  {
+    name: "Help",
+    href: "/help",
+    icon: <HelpCircle className="size-5" strokeWidth={1.5} />,
+  },
+  {
+    name: "Settings",
+    href: "/system-settings",
+    icon: <Settings2 className="size-5" strokeWidth={1.5} />,
+  },
+];
