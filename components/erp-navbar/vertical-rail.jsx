@@ -14,6 +14,7 @@ import { NavDockSelect } from "./nav-dock-select";
 import { SiteSelect } from "./site-select";
 import { useSite } from "./site-context";
 import { useErpNavUi } from "./nav-ui-context";
+import { useNavDock } from "./nav-dock-context";
 
 /** Collapsed rail: w-14 on small screens, md:w-[4.5rem] from md up; expanded: w-[17.25rem]. */
 const WIDTH_EXPANDED_CLASS = "w-[17.25rem]";
@@ -197,6 +198,7 @@ export function ErpVerticalRail({ edge }) {
   const invertBar = edge === "end";
   const ui = useErpNavUi();
   const { sites, site } = useSite();
+  const { setVerticalExpanded } = useNavDock();
 
   const [hoveredRail, setHoveredRail] = useState(false);
   const [focusedWithin, setFocusedWithin] = useState(false);
@@ -204,6 +206,11 @@ export function ErpVerticalRail({ edge }) {
   const hoverLeaveTimerRef = useRef(null);
 
   const expanded = hoveredRail || focusedWithin || accountMenuOpen;
+
+  useEffect(() => {
+    setVerticalExpanded(expanded);
+    return () => setVerticalExpanded(false);
+  }, [expanded, setVerticalExpanded]);
 
   useEffect(() => {
     return () => {

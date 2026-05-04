@@ -7,14 +7,7 @@ export default function ReferenceDataLayout({ children }) {
         <ReferenceDataBubbleNav />
       </div>
 
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Reference data</h1>
-          <p className="max-w-2xl text-pretty text-sm text-slate-600">
-            Master lists, lookups, and shared dimensions for Packing ERP modules.
-          </p>
-        </header>
-
+      <div className="mx-auto w-full max-w-[96rem] space-y-6">
         {children}
       </div>
     </div>
