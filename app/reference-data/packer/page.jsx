@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DEMO_COMMODITY_TYPES, DEMO_STOCK_LOCATIONS } from "@/lib/demo-in-ticket-data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -27,30 +28,100 @@ const config = {
       name: "Dock North A",
       description: "Heavy lift bay",
       status: "Active",
-      commodityTypesAllowed: "All",
-      stockLocationsAllowed: "3",
+      commodityMode: "all",
+      commodityTypeIds: [],
+      stockLocationMode: "selected",
+      stockLocationIds: [1, 2, 3],
     },
     {
       id: 2,
       name: "Dock South",
       description: "General cargo",
       status: "Under maintenance",
-      commodityTypesAllowed: "2",
-      stockLocationsAllowed: "All",
+      commodityMode: "selected",
+      commodityTypeIds: [1, 2],
+      stockLocationMode: "all",
+      stockLocationIds: [],
     },
   ],
   formFields: [
     { key: "name", label: "Name", required: true },
     { key: "status", label: "Status", type: "select", options: ["Active", "Under maintenance", "Inactive"] },
     { key: "description", label: "Description", type: "textarea" },
-    { key: "commodityTypesAllowed", label: "Commodity Types Allowed", placeholder: "e.g. All or Grain, Pulses" },
-    { key: "stockLocationsAllowed", label: "Stock Locations Allowed", placeholder: "e.g. All or Bay 12, Shed C" },
   ],
 };
+
+const commodityTypeOptions = DEMO_COMMODITY_TYPES.map((item) => ({
+  id: Number(item.id),
+  name: String(item.name ?? ""),
+}));
+
+const commodityTypeMap = new Map(commodityTypeOptions.map((item) => [item.id, item.name]));
+const stockLocationOptions = DEMO_STOCK_LOCATIONS.map((item) => ({
+  id: Number(item.id),
+  name: String(item.name ?? ""),
+}));
+const stockLocationMap = new Map(stockLocationOptions.map((item) => [item.id, item.name]));
+
+function normalizeCommodityTypeIds(ids) {
+  if (!Array.isArray(ids)) return [];
+  const uniq = new Set();
+  for (const rawId of ids) {
+    const id = Number(rawId);
+    if (Number.isNaN(id) || !commodityTypeMap.has(id)) continue;
+    uniq.add(id);
+  }
+  return Array.from(uniq);
+}
+
+function buildCommoditySummary(mode, ids) {
+  if (mode === "all") return "All";
+  const selected = normalizeCommodityTypeIds(ids);
+  if (!selected.length) return "—";
+  return `${selected.length} selected`;
+}
+
+function normalizeStockLocationIds(ids) {
+  if (!Array.isArray(ids)) return [];
+  const uniq = new Set();
+  for (const rawId of ids) {
+    const id = Number(rawId);
+    if (Number.isNaN(id) || !stockLocationMap.has(id)) continue;
+    uniq.add(id);
+  }
+  return Array.from(uniq);
+}
+
+function buildStockLocationSummary(mode, ids) {
+  if (mode === "all") return "All";
+  const selected = normalizeStockLocationIds(ids);
+  if (!selected.length) return "—";
+  return `${selected.length} selected`;
+}
+
+function toDisplayRow(row) {
+  const commodityMode = row?.commodityMode === "selected" ? "selected" : "all";
+  const commodityTypeIds = normalizeCommodityTypeIds(row?.commodityTypeIds);
+  const stockLocationMode = row?.stockLocationMode === "selected" ? "selected" : "all";
+  const stockLocationIds = normalizeStockLocationIds(row?.stockLocationIds);
+  return {
+    ...row,
+    commodityMode,
+    commodityTypeIds,
+    stockLocationMode,
+    stockLocationIds,
+    commodityTypesAllowed: buildCommoditySummary(commodityMode, commodityTypeIds),
+    stockLocationsAllowed: buildStockLocationSummary(stockLocationMode, stockLocationIds),
+  };
+}
 
 function buildDraft(row) {
   const next = {};
   for (const field of config.formFields) next[field.key] = row?.[field.key] ?? "";
+  next.commodityMode = row?.commodityMode === "selected" ? "selected" : "all";
+  next.commodityTypeIds = normalizeCommodityTypeIds(row?.commodityTypeIds);
+  next.stockLocationMode = row?.stockLocationMode === "selected" ? "selected" : "all";
+  next.stockLocationIds = normalizeStockLocationIds(row?.stockLocationIds);
   return next;
 }
 
@@ -62,7 +133,7 @@ function parseFieldValue(field, value) {
 }
 
 export default function PackerPage() {
-  const [rows, setRows] = useState(() => [...config.rows]);
+  const [rows, setRows] = useState(() => config.rows.map(toDisplayRow));
   const [search, setSearch] = useState("");
   const [colFilters, setColFilters] = useState(() => Object.fromEntries(config.columns.map((column) => [column.key, ""])));
   const [selectedId, setSelectedId] = useState(null);
@@ -127,18 +198,66 @@ export default function PackerPage() {
     if (requiredMissing) return;
     const normalized = {};
     for (const field of config.formFields) normalized[field.key] = parseFieldValue(field, draft[field.key] ?? "");
+    const commodityMode = draft.commodityMode === "selected" ? "selected" : "all";
+    const commodityTypeIds = commodityMode === "selected" ? normalizeCommodityTypeIds(draft.commodityTypeIds) : [];
+    const stockLocationMode = draft.stockLocationMode === "selected" ? "selected" : "all";
+    const stockLocationIds = stockLocationMode === "selected" ? normalizeStockLocationIds(draft.stockLocationIds) : [];
     if (modalMode === "add") {
       const nextId = Math.max(0, ...rows.map((row) => Number(row.id) || 0)) + 1;
-      const nextRow = { id: nextId, ...normalized };
+      const nextRow = toDisplayRow({ id: nextId, ...normalized, commodityMode, commodityTypeIds, stockLocationMode, stockLocationIds });
       setRows((prev) => [nextRow, ...prev]);
       setSelectedId(nextId);
       setModalMode(null);
       return;
     }
     if (modalMode === "edit" && selected) {
-      setRows((prev) => prev.map((row) => (row.id === selected.id ? { ...row, ...normalized } : row)));
+      setRows((prev) =>
+        prev.map((row) =>
+          row.id === selected.id ? toDisplayRow({ ...row, ...normalized, commodityMode, commodityTypeIds, stockLocationMode, stockLocationIds }) : row
+        )
+      );
       setModalMode(null);
     }
+  }
+
+  function setCommodityMode(mode) {
+    setDraft((prev) => ({
+      ...prev,
+      commodityMode: mode,
+      commodityTypeIds: mode === "all" ? [] : prev.commodityTypeIds,
+    }));
+  }
+
+  function toggleCommodityType(id) {
+    setDraft((prev) => {
+      const current = normalizeCommodityTypeIds(prev.commodityTypeIds);
+      const exists = current.includes(id);
+      return {
+        ...prev,
+        commodityMode: "selected",
+        commodityTypeIds: exists ? current.filter((item) => item !== id) : [...current, id],
+      };
+    });
+  }
+
+  function setStockLocationMode(mode) {
+    setDraft((prev) => ({
+      ...prev,
+      stockLocationMode: mode,
+      stockLocationIds: mode === "all" ? [] : prev.stockLocationIds,
+    }));
+  }
+
+  function toggleStockLocation(id) {
+    setDraft((prev) => {
+      const current = normalizeStockLocationIds(prev.stockLocationIds);
+      const exists = current.includes(id);
+      return {
+        ...prev,
+        stockLocationMode: "selected",
+        stockLocationIds: exists ? current.filter((item) => item !== id) : [...current, id],
+      };
+    });
   }
 
   function removeSelected() {
@@ -263,6 +382,76 @@ export default function PackerPage() {
           {config.formFields.map((field) => (
             <FormField key={field.key} field={field} value={draft[field.key] ?? ""} onChange={(value) => setDraft((prev) => ({ ...prev, [field.key]: value }))} />
           ))}
+        </div>
+        <div className="mt-4 space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Commodity Types Allowed</p>
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/50 p-3">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input type="radio" name="commodity-mode" checked={draft.commodityMode === "all"} onChange={() => setCommodityMode("all")} />
+              All
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="commodity-mode"
+                checked={draft.commodityMode === "selected"}
+                onChange={() => setCommodityMode("selected")}
+              />
+              Select commodity types
+            </label>
+            {draft.commodityMode === "selected" ? (
+              commodityTypeOptions.length ? (
+                <div className="grid gap-2 pt-1 sm:grid-cols-2">
+                  {commodityTypeOptions.map((option) => {
+                    const checked = normalizeCommodityTypeIds(draft.commodityTypeIds).includes(option.id);
+                    return (
+                      <label key={option.id} className="flex items-center gap-2 text-sm text-slate-700">
+                        <input type="checkbox" checked={checked} onChange={() => toggleCommodityType(option.id)} />
+                        {option.name}
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">No commodity types found in the commodity base table.</p>
+              )
+            ) : null}
+          </div>
+        </div>
+        <div className="mt-4 space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Stock Locations Allowed</p>
+          <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50/50 p-3">
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input type="radio" name="stock-location-mode" checked={draft.stockLocationMode === "all"} onChange={() => setStockLocationMode("all")} />
+              All
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="stock-location-mode"
+                checked={draft.stockLocationMode === "selected"}
+                onChange={() => setStockLocationMode("selected")}
+              />
+              Select stock locations
+            </label>
+            {draft.stockLocationMode === "selected" ? (
+              stockLocationOptions.length ? (
+                <div className="grid gap-2 pt-1 sm:grid-cols-2">
+                  {stockLocationOptions.map((option) => {
+                    const checked = normalizeStockLocationIds(draft.stockLocationIds).includes(option.id);
+                    return (
+                      <label key={option.id} className="flex items-center gap-2 text-sm text-slate-700">
+                        <input type="checkbox" checked={checked} onChange={() => toggleStockLocation(option.id)} />
+                        {option.name}
+                      </label>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500">No stock locations found in the stock location base table.</p>
+              )
+            ) : null}
+          </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={closeModal}>Cancel</Button>
