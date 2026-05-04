@@ -49,7 +49,7 @@ function AppShellInner({ children }) {
         >
           <MainPanel>{children}</MainPanel>
         </div>
-        <div className="absolute inset-y-0 right-0 z-40">
+        <div className="fixed inset-y-0 right-0 z-40">
           <ErpNavbar />
         </div>
       </div>
@@ -66,7 +66,7 @@ function AppShellInner({ children }) {
       >
         <MainPanel>{children}</MainPanel>
       </div>
-      <div className="absolute inset-y-0 left-0 z-40">
+      <div className="fixed inset-y-0 left-0 z-40">
         <ErpNavbar />
       </div>
     </div>
