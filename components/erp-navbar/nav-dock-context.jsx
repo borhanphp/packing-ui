@@ -30,6 +30,7 @@ export function NavDockProvider({
   defaultDock = "vertical-start",
 }) {
   const [dock, setDockState] = useState(defaultDock);
+  const [verticalExpanded, setVerticalExpanded] = useState(false);
 
   useEffect(() => {
     const parsed = parseDock(localStorage.getItem(storageKey));
@@ -49,8 +50,10 @@ export function NavDockProvider({
       dock,
       setDock,
       isVertical: dock === "vertical-start" || dock === "vertical-end",
+      verticalExpanded,
+      setVerticalExpanded,
     }),
-    [dock, setDock]
+    [dock, setDock, verticalExpanded]
   );
 
   return <NavDockContext.Provider value={value}>{children}</NavDockContext.Provider>;

@@ -17,7 +17,7 @@ function MainPanel({ children }) {
 }
 
 function AppShellInner({ children }) {
-  const { dock, isVertical } = useNavDock();
+  const { dock, isVertical, verticalExpanded } = useNavDock();
 
   if (!isVertical) {
     const top = dock === "horizontal-top";
@@ -40,17 +40,35 @@ function AppShellInner({ children }) {
 
   if (dock === "vertical-end") {
     return (
-      <div className={cn("flex min-h-dvh flex-row text-slate-900", SHELL_BG)}>
-        <MainPanel>{children}</MainPanel>
-        <ErpNavbar />
+      <div className={cn("relative min-h-dvh text-slate-900", SHELL_BG)}>
+        <div
+          className={cn(
+            "min-w-0 transition-[padding] duration-[480ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+            verticalExpanded ? "pe-14 md:pe-[17.25rem]" : "pe-14 md:pe-[4.5rem]"
+          )}
+        >
+          <MainPanel>{children}</MainPanel>
+        </div>
+        <div className="absolute inset-y-0 right-0 z-40">
+          <ErpNavbar />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={cn("flex min-h-dvh flex-row text-slate-900", SHELL_BG)}>
-      <ErpNavbar />
-      <MainPanel>{children}</MainPanel>
+    <div className={cn("relative min-h-dvh text-slate-900", SHELL_BG)}>
+      <div
+        className={cn(
+          "min-w-0 transition-[padding] duration-[480ms] ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+          verticalExpanded ? "ps-14 md:ps-[17.25rem]" : "ps-14 md:ps-[4.5rem]"
+        )}
+      >
+        <MainPanel>{children}</MainPanel>
+      </div>
+      <div className="absolute inset-y-0 left-0 z-40">
+        <ErpNavbar />
+      </div>
     </div>
   );
 }
