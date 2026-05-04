@@ -16,7 +16,7 @@ const config = {
     { key: "site", label: "Site" },
     { key: "locationType", label: "Type" },
     { key: "status", label: "Status" },
-    { key: "capacity", label: "Capacity", numeric: true },
+    { key: "capacity", label: "Capacity (T)", numeric: true },
   ],
   rows: [
     { id: 1, name: "Bay 12", site: "Melbourne", locationType: "Bay", status: "Active", capacity: "420" },
@@ -25,9 +25,9 @@ const config = {
   formFields: [
     { key: "name", label: "Location Name", required: true },
     { key: "site", label: "Site", type: "select", options: ["Melbourne", "Sydney", "Brisbane"] },
-    { key: "locationType", label: "Location Type", type: "select", options: ["Bay", "Shed", "Lane"] },
+    { key: "locationType", label: "Location Type", type: "select", options: ["Bay", "Pile", "Silo"] },
     { key: "status", label: "Status", type: "select", options: ["Active", "Inactive"] },
-    { key: "capacity", label: "Capacity", type: "number", placeholder: "0" },
+    { key: "capacity", label: "Capacity (T)", type: "number", placeholder: "0.00" },
   ],
 };
 

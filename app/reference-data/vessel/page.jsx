@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils";
 const MOBILE_BREAKPOINT = 900;
 const inputClass = "w-full rounded-lg border border-slate-200/95 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-brand/15 placeholder:text-slate-400 focus:border-brand/35 focus:ring-2";
 const filterInputClass = "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
+const SHIPPING_LINE_BASE_ROWS = [
+  { id: 1, shippingLineCode: "BSL", shippingLineName: "BlueStar Line" },
+];
+const SHIPPING_LINE_OPTIONS = SHIPPING_LINE_BASE_ROWS.map((line) => line.shippingLineName);
 
 const config = {
   title: "Vessel",
@@ -26,10 +30,10 @@ const config = {
       id: 1,
       vessel: "Pacific Trader",
       voyageNumber: "PT0426",
-      vesselCutoffDate: "2026-05-02 14:00",
-      vesselReceivalsOpenDate: "2026-04-28 06:00",
-      vesselEta: "2026-05-05 08:00",
-      vesselEtd: "2026-05-06 16:00",
+      vesselCutoffDate: "2026-05-02T14:00",
+      vesselReceivalsOpenDate: "2026-04-28T06:00",
+      vesselEta: "2026-05-05T08:00",
+      vesselEtd: "2026-05-06T16:00",
       vesselFreeDays: "7",
       shippingLine: "BlueStar Line",
     },
@@ -37,12 +41,12 @@ const config = {
   formFields: [
     { key: "vessel", label: "Vessel", required: true },
     { key: "voyageNumber", label: "Voyage Number", required: true },
-    { key: "vesselCutoffDate", label: "Cut-off", placeholder: "YYYY-MM-DD HH:mm" },
-    { key: "vesselReceivalsOpenDate", label: "Receivals Open", placeholder: "YYYY-MM-DD HH:mm" },
-    { key: "vesselEta", label: "ETA", placeholder: "YYYY-MM-DD HH:mm" },
-    { key: "vesselEtd", label: "ETD", placeholder: "YYYY-MM-DD HH:mm" },
+    { key: "vesselCutoffDate", label: "Cut-off", type: "datetime-local" },
+    { key: "vesselReceivalsOpenDate", label: "Receivals Open", type: "datetime-local" },
+    { key: "vesselEta", label: "ETA", type: "datetime-local" },
+    { key: "vesselEtd", label: "ETD", type: "datetime-local" },
     { key: "vesselFreeDays", label: "Free Days", type: "number" },
-    { key: "shippingLine", label: "Shipping Line" },
+    { key: "shippingLine", label: "Shipping Line", type: "select", options: SHIPPING_LINE_OPTIONS },
   ],
 };
 

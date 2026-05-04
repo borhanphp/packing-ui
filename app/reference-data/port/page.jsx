@@ -7,6 +7,11 @@ import { cn } from "@/lib/utils";
 const MOBILE_BREAKPOINT = 900;
 const inputClass = "w-full rounded-lg border border-slate-200/95 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-brand/15 placeholder:text-slate-400 focus:border-brand/35 focus:ring-2";
 const filterInputClass = "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
+const COUNTRIES_BASE_ROWS = [
+  { id: 1, countryName: "Australia", countryCode: "AU" },
+  { id: 2, countryName: "New Zealand", countryCode: "NZ" },
+];
+const COUNTRY_OPTIONS = COUNTRIES_BASE_ROWS.map((country) => country.countryName);
 
 const config = {
   title: "Port",
@@ -23,7 +28,7 @@ const config = {
   formFields: [
     { key: "code", label: "Port Code", required: true, placeholder: "e.g. AUMEL" },
     { key: "name", label: "Port Name", required: true },
-    { key: "country", label: "Country", required: true },
+    { key: "country", label: "Country", required: true, type: "select", options: COUNTRY_OPTIONS },
   ],
 };
 

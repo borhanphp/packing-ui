@@ -15,18 +15,20 @@ const config = {
   title: "Trucks",
   subtitle: "Manage truck fleet records used in ticketing and operations.",
   columns: [
-    { key: "name", label: "Truck" },
+    { key: "name", label: "Rego" },
     { key: "driver", label: "Driver" },
-    { key: "tare", label: "Tare (kg)", numeric: true },
+    { key: "combination", label: "Combination" },
+    { key: "tare", label: "Tare (T)", numeric: true },
   ],
   rows: [
-    { id: 1, name: "MHY-104", driver: "Alex Nguyen", tare: "8200" },
-    { id: 2, name: "MHY-227", driver: "Jamie Cole", tare: "8450" },
+    { id: 1, name: "MHY-104", driver: "Alex Nguyen", combination: "B-Double", tare: "8.20" },
+    { id: 2, name: "MHY-227", driver: "Jamie Cole", combination: "Semi Trailer", tare: "8.45" },
   ],
   formFields: [
-    { key: "name", label: "Truck Name", required: true, placeholder: "Fleet ID" },
+    { key: "name", label: "Rego", required: true, placeholder: "e.g. MHY-104" },
     { key: "driver", label: "Driver", placeholder: "Driver name" },
-    { key: "tare", label: "Tare (kg)", type: "number", placeholder: "0" },
+    { key: "combination", label: "Combination", placeholder: "e.g. B-Double" },
+    { key: "tare", label: "Tare (T)", type: "number", placeholder: "0.00" },
   ],
 };
 
