@@ -91,10 +91,6 @@ export default function TransactionsClient() {
 
   return (
     <div className="space-y-6">
-      <p className="max-w-2xl text-sm text-slate-600">
-        Transaction ledger layout aligned with Mahonys Packing—filters, rolling totals, and grid columns mirror the legacy screen.
-      </p>
-
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200/90 bg-white p-4 shadow-sm lg:flex-row lg:flex-wrap lg:items-center">
         <input
           className={`${inputClass} min-w-[180px] flex-1`}

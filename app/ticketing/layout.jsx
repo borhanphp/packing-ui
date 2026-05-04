@@ -7,7 +7,7 @@ export default function TicketingLayout({ children }) {
         <TicketingBubbleNav />
       </div>
 
-      <div className="mx-auto max-w-6xl">{children}</div>
+      <div className="mx-auto w-full max-w-[96rem] space-y-6">{children}</div>
     </div>
   );
 }

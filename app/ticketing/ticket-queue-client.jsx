@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const inputClass =
-  "w-full rounded-lg border border-slate-200/95 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none ring-brand/15 placeholder:text-slate-400 focus:border-brand/35 focus:ring-2";
+  "w-full rounded-lg border border-slate-300 bg-white px-2.5 py-1.5 text-sm text-slate-900 outline-none ring-brand/15 placeholder:text-slate-400 focus:border-brand/35 focus:ring-2";
 
 const filterInputClass =
   "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
@@ -216,7 +216,8 @@ export default function TicketQueueClient({ variant }) {
         <h1 className="mt-2 text-2xl font-semibold tracking-tight text-slate-900 md:text-[1.65rem]">{title}</h1>
       </div>
 
-      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+      <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-sm">
+        <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
         <input
           className={`${inputClass} lg:min-w-[240px] lg:flex-1`}
           value={search}
@@ -232,7 +233,7 @@ export default function TicketQueueClient({ variant }) {
                 type="button"
                 onClick={() => toggleStatus(key)}
                 className={cn(
-                  "rounded-full px-3 py-1.5 text-xs font-semibold ring-1 transition-colors",
+                  "rounded-full border px-3 py-1.5 text-xs font-semibold ring-1 transition-colors",
                   on ? activeRing : inactiveRing
                 )}
               >
@@ -257,6 +258,7 @@ export default function TicketQueueClient({ variant }) {
           <Button
             type="button"
             size="sm"
+            className="border border-brand/35"
             onClick={() =>
               router.push(variant === "incoming" ? "/ticketing/in/new" : "/ticketing/outgoing/new")
             }
@@ -267,6 +269,7 @@ export default function TicketQueueClient({ variant }) {
             type="button"
             variant="outline"
             size="sm"
+            className="border-slate-300"
             disabled={!selected}
             onClick={() =>
               selected &&
@@ -277,10 +280,11 @@ export default function TicketQueueClient({ variant }) {
           >
             Edit
           </Button>
-          <Button type="button" variant="destructive" size="sm" disabled={!selected}>
+          <Button type="button" variant="destructive" size="sm" className="border border-red-300/80" disabled={!selected}>
             Delete
           </Button>
         </div>
+      </div>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] xl:items-start">
