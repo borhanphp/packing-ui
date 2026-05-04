@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import * as Avatar from "@radix-ui/react-avatar";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
@@ -21,6 +21,7 @@ function IconSlot({ icon, className }) {
 
 export function ErpHorizontalNav({ edge }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [accountOpen, setAccountOpen] = useState(false);
   const ui = useErpNavUi();
   const { sites } = useSite();
@@ -145,6 +146,10 @@ export function ErpHorizontalNav({ edge }) {
               <DropdownMenu.Item asChild>
                 <button
                   type="button"
+                  onClick={() => {
+                    localStorage.removeItem("isAuthenticated");
+                    router.push("/login");
+                  }}
                   className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-left outline-none hover:bg-red-50 hover:text-red-800"
                 >
                   <LogOut className="size-4" />
