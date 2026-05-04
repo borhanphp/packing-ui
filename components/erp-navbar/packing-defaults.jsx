@@ -42,6 +42,7 @@ export const PACKING_NAV_MODULES = [
       { name: "Overview", href: "/" },
       { name: "Reference data", href: "/reference-data" },
       { name: "System settings", href: "/system-settings" },
+      { name: "Product settings", href: "/product-settings" },
     ],
   },
   {

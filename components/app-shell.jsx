@@ -1,11 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+
 import { ErpNavbar, NavDockProvider, SiteProvider, useNavDock } from "@/components/erp-navbar";
 
 import { cn } from "@/lib/utils";
 
 const SHELL_BG =
   "bg-[#f6f8fc] bg-[radial-gradient(ellipse_120%_80%_at_50%_-12%,rgba(0,112,255,0.09),transparent_55%)]";
+
+const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"];
 
 function MainPanel({ children }) {
   return (
@@ -17,7 +22,23 @@ function MainPanel({ children }) {
 }
 
 function AppShellInner({ children }) {
+  const pathname = usePathname();
+  const router = useRouter();
   const { dock, isVertical, verticalExpanded } = useNavDock();
+
+  useEffect(() => {
+    const isAuthRoute = AUTH_ROUTES.some((r) => pathname.startsWith(r));
+    const isAuthenticated = localStorage.getItem("isAuthenticated") === "true";
+
+    if (!isAuthenticated && !isAuthRoute) {
+      router.push("/login");
+    }
+  }, [pathname, router]);
+
+  /* Auth pages bypass the ERP shell entirely */
+  if (AUTH_ROUTES.some((r) => pathname.startsWith(r))) {
+    return <>{children}</>;
+  }
 
   if (!isVertical) {
     const top = dock === "horizontal-top";
