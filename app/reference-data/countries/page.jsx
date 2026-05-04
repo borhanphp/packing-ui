@@ -27,31 +27,83 @@ const config = {
       countryName: "Australia",
       countryCode: "AU",
       notesPreview: "Standard documentation applies",
-      contacts: "2 contacts",
-      warnings: "—",
+      contactItems: [
+        { name: "Border Ops AU", phone: "+61 2 9132 0011", email: "ops-au@shipflow.example" },
+        { name: "Customs Support", phone: "+61 2 9132 0099", email: "customs-au@shipflow.example" },
+      ],
+      warningItems: [],
     },
     {
       id: 2,
       countryName: "New Zealand",
       countryCode: "NZ",
       notesPreview: "Special treatment timing",
-      contacts: "1 contact",
-      warnings: "1 warning",
+      contactItems: [{ name: "Auckland Desk", phone: "+64 9 700 2340", email: "auckland-desk@shipflow.example" }],
+      warningItems: [{ description: "Biosecurity checks can delay release by 1-2 days.", showOnPacks: true }],
     },
   ],
   formFields: [
     { key: "countryName", label: "Country Name", required: true, placeholder: "e.g. Australia" },
     { key: "countryCode", label: "Country Code", required: true, placeholder: "e.g. AU" },
     { key: "notesPreview", label: "Notes", type: "textarea", placeholder: "Operational notes" },
-    { key: "contacts", label: "Contacts", placeholder: "e.g. 2 contacts" },
-    { key: "warnings", label: "Warnings", placeholder: "e.g. 1 warning" },
   ],
 };
 
+function createEmptyContact() {
+  return { name: "", phone: "", email: "" };
+}
+
+function createEmptyWarning() {
+  return { description: "", showOnPacks: true };
+}
+
+function normalizeContactItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map((item) => ({
+    name: String(item?.name ?? ""),
+    phone: String(item?.phone ?? ""),
+    email: String(item?.email ?? ""),
+  }));
+}
+
+function normalizeWarningItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map((item) => ({
+    description: String(item?.description ?? ""),
+    showOnPacks: Boolean(item?.showOnPacks),
+  }));
+}
+
+function pluralizeCount(count, noun) {
+  if (!count) return "—";
+  return `${count} ${noun}${count === 1 ? "" : "s"}`;
+}
+
+function toDisplayRow(row) {
+  const contactItems = normalizeContactItems(row.contactItems);
+  const warningItems = normalizeWarningItems(row.warningItems);
+  return {
+    ...row,
+    contactItems,
+    warningItems,
+    contacts: pluralizeCount(contactItems.length, "contact"),
+    warnings: pluralizeCount(warningItems.length, "warning"),
+  };
+}
+
 function buildDraft(row) {
-  const next = {};
+  const next = {
+    contactItems: [createEmptyContact()],
+    warningItems: [createEmptyWarning()],
+  };
   for (const field of config.formFields) {
     next[field.key] = row?.[field.key] ?? "";
+  }
+  if (row) {
+    const rowContacts = normalizeContactItems(row.contactItems);
+    const rowWarnings = normalizeWarningItems(row.warningItems);
+    next.contactItems = rowContacts.length ? rowContacts : [createEmptyContact()];
+    next.warningItems = rowWarnings.length ? rowWarnings : [createEmptyWarning()];
   }
   return next;
 }
@@ -64,7 +116,7 @@ function parseFieldValue(field, value) {
 }
 
 export default function CountriesPage() {
-  const [rows, setRows] = useState(() => [...config.rows]);
+  const [rows, setRows] = useState(() => config.rows.map(toDisplayRow));
   const [search, setSearch] = useState("");
   const [colFilters, setColFilters] = useState(() => Object.fromEntries(config.columns.map((column) => [column.key, ""])));
   const [selectedId, setSelectedId] = useState(null);
@@ -129,19 +181,63 @@ export default function CountriesPage() {
     if (requiredMissing) return;
     const normalized = {};
     for (const field of config.formFields) normalized[field.key] = parseFieldValue(field, draft[field.key] ?? "");
+    const contactItems = normalizeContactItems(draft.contactItems)
+      .map((item) => ({ name: item.name.trim(), phone: item.phone.trim(), email: item.email.trim() }))
+      .filter((item) => item.name || item.phone || item.email);
+    const warningItems = normalizeWarningItems(draft.warningItems)
+      .map((item) => ({ description: item.description.trim(), showOnPacks: item.showOnPacks }))
+      .filter((item) => item.description);
 
     if (modalMode === "add") {
       const nextId = Math.max(0, ...rows.map((row) => Number(row.id) || 0)) + 1;
-      const nextRow = { id: nextId, ...normalized };
+      const nextRow = toDisplayRow({ id: nextId, ...normalized, contactItems, warningItems });
       setRows((prev) => [nextRow, ...prev]);
       setSelectedId(nextId);
       setModalMode(null);
       return;
     }
     if (modalMode === "edit" && selected) {
-      setRows((prev) => prev.map((row) => (row.id === selected.id ? { ...row, ...normalized } : row)));
+      setRows((prev) =>
+        prev.map((row) => (row.id === selected.id ? toDisplayRow({ ...row, ...normalized, contactItems, warningItems }) : row))
+      );
       setModalMode(null);
     }
+  }
+
+  function updateContact(index, key, value) {
+    setDraft((prev) => ({
+      ...prev,
+      contactItems: prev.contactItems.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)),
+    }));
+  }
+
+  function addContact() {
+    setDraft((prev) => ({ ...prev, contactItems: [...prev.contactItems, createEmptyContact()] }));
+  }
+
+  function removeContact(index) {
+    setDraft((prev) => {
+      const next = prev.contactItems.filter((_, itemIndex) => itemIndex !== index);
+      return { ...prev, contactItems: next.length ? next : [createEmptyContact()] };
+    });
+  }
+
+  function updateWarning(index, key, value) {
+    setDraft((prev) => ({
+      ...prev,
+      warningItems: prev.warningItems.map((item, itemIndex) => (itemIndex === index ? { ...item, [key]: value } : item)),
+    }));
+  }
+
+  function addWarning() {
+    setDraft((prev) => ({ ...prev, warningItems: [...prev.warningItems, createEmptyWarning()] }));
+  }
+
+  function removeWarning(index) {
+    setDraft((prev) => {
+      const next = prev.warningItems.filter((_, itemIndex) => itemIndex !== index);
+      return { ...prev, warningItems: next.length ? next : [createEmptyWarning()] };
+    });
   }
 
   function removeSelected() {
@@ -270,6 +366,78 @@ export default function CountriesPage() {
           {config.formFields.map((field) => (
             <FormField key={field.key} field={field} value={draft[field.key] ?? ""} onChange={(value) => setDraft((prev) => ({ ...prev, [field.key]: value }))} />
           ))}
+        </div>
+        <div className="mt-4 space-y-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Country Contact(s)</p>
+            <div className="mt-2 space-y-2">
+              {(draft.contactItems ?? []).map((contact, index) => (
+                <div key={`contact-${index}`} className="rounded-lg border border-slate-200 bg-slate-50/50 p-2">
+                  <div className="mb-1 flex items-center justify-between">
+                    <p className="text-xs font-semibold text-slate-600">Contact {index + 1}</p>
+                    {(draft.contactItems?.length ?? 0) > 1 ? (
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                        onClick={() => removeContact(index)}
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <input className={inputClass} value={contact.name} onChange={(event) => updateContact(index, "name", event.target.value)} placeholder="Contact Name" />
+                    <input className={inputClass} value={contact.phone} onChange={(event) => updateContact(index, "phone", event.target.value)} placeholder="Contact Phone" />
+                    <input className={inputClass} value={contact.email} onChange={(event) => updateContact(index, "email", event.target.value)} placeholder="Contact Email" />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button type="button" variant="outline" size="sm" className="mt-2 w-full justify-start" onClick={addContact}>
+              + Add Contact
+            </Button>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-600">Country Warning(s)</p>
+            <div className="mt-2 space-y-2">
+              {(draft.warningItems ?? []).map((warning, index) => (
+                <div key={`warning-${index}`} className="rounded-lg border border-amber-200/70 bg-amber-50/40 p-2">
+                  <div className="mb-1 flex items-center justify-between">
+                    <p className="text-xs font-semibold text-slate-600">Warning {index + 1}</p>
+                    {(draft.warningItems?.length ?? 0) > 1 ? (
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-rose-600 hover:text-rose-700"
+                        onClick={() => removeWarning(index)}
+                      >
+                        Remove
+                      </button>
+                    ) : null}
+                  </div>
+                  <div className="space-y-2">
+                    <input
+                      className={inputClass}
+                      value={warning.description}
+                      onChange={(event) => updateWarning(index, "description", event.target.value)}
+                      placeholder="Warning Description"
+                    />
+                    <label className="inline-flex items-center gap-2 text-sm text-slate-700">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(warning.showOnPacks)}
+                        onChange={(event) => updateWarning(index, "showOnPacks", event.target.checked)}
+                      />
+                      Show on Packs
+                    </label>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <Button type="button" variant="outline" size="sm" className="mt-2 w-full justify-start" onClick={addWarning}>
+              + Add Warning
+            </Button>
+          </div>
         </div>
         <div className="mt-5 flex justify-end gap-2">
           <Button type="button" variant="ghost" size="sm" onClick={closeModal}>Cancel</Button>
