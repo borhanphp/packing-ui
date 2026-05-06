@@ -14,13 +14,10 @@ import {
   Users,
   Waypoints,
 } from "lucide-react";
+import { DEFAULT_SITE_OPTIONS } from "@/lib/site-data";
 
 /** Default sites for the packing shell — override via `SiteProvider` props. */
-export const PACKING_SITES = [
-  { id: "melbourne", label: "Melbourne" },
-  { id: "sydney", label: "Sydney" },
-  { id: "brisbane", label: "Brisbane" },
-];
+export const PACKING_SITES = DEFAULT_SITE_OPTIONS;
 
 export const PACKING_NAV_DEFAULT_UI = {
   brandTitle: "Clutch.",
