@@ -11,43 +11,70 @@ const filterInputClass =
   "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
 
 const columns = [
+  { key: "code", label: "Code" },
   { key: "name", label: "Name" },
   { key: "email", label: "Email" },
-  { key: "role", label: "Role" },
-  { key: "status", label: "Status" },
+  { key: "contactsCount", label: "Contacts" },
 ];
 
 const initialRows = [
-  { id: 1, name: "Alec Stead", email: "ops@packing.local", role: "Administrator", active: true },
-  { id: 2, name: "Jordan Miles", email: "warehouse@packing.local", role: "Warehouse", active: true },
-  { id: 3, name: "Sam Rivera", email: "finance@packing.local", role: "Read only", active: false },
+  {
+    id: 1,
+    code: "TR-01",
+    name: "Fast Haul Logistics",
+    email: "ops@fasthaul.example",
+    contacts: [
+      { name: "Mia Carter", email: "mia@fasthaul.example", phone: "+61 3 9000 4011" },
+      { name: "Dock Team", email: "dock@fasthaul.example", phone: "+61 3 9000 4012" },
+    ],
+  },
+  {
+    id: 2,
+    code: "TR-02",
+    name: "BlueRoad Transport",
+    email: "dispatch@blueroad.example",
+    contacts: [{ name: "Liam Ford", email: "liam@blueroad.example", phone: "+61 7 4100 2199" }],
+  },
 ];
 
+const emptyContact = () => ({ name: "", email: "", phone: "" });
+
+function normalizeContacts(contacts) {
+  if (!Array.isArray(contacts) || contacts.length === 0) return [emptyContact()];
+  return contacts.map((contact) =>
+    typeof contact === "string"
+      ? { name: contact, email: "", phone: "" }
+      : {
+          name: contact.name || "",
+          email: contact.email || "",
+          phone: contact.phone || "",
+        }
+  );
+}
+
 function toDisplayRow(row) {
+  const contacts = normalizeContacts(row.contacts).filter((contact) => contact.name || contact.email || contact.phone);
   return {
     ...row,
-    status: row.active ? "Active" : "Inactive",
+    email: row.email || "",
+    contacts,
+    contactsCount: contacts.length ? `${contacts.length} contact${contacts.length === 1 ? "" : "s"}` : "—",
   };
 }
 
 function buildFormData(row) {
   if (!row) {
-    return {
-      name: "",
-      email: "",
-      role: "",
-      active: true,
-    };
+    return { code: "", name: "", email: "", contacts: [emptyContact()] };
   }
   return {
+    code: row.code || "",
     name: row.name || "",
     email: row.email || "",
-    role: row.role || "",
-    active: row.active !== false,
+    contacts: normalizeContacts(row.contacts),
   };
 }
 
-export default function ContactUsersPage() {
+export default function TransporterPage() {
   const [rows, setRows] = useState(() => initialRows.map(toDisplayRow));
   const [search, setSearch] = useState("");
   const [colFilters, setColFilters] = useState(() => Object.fromEntries(columns.map((column) => [column.key, ""])));
@@ -78,16 +105,17 @@ export default function ContactUsersPage() {
     return rows.filter((row) => {
       const query = search.trim().toLowerCase();
       if (query) {
-        const blob = `${row.name} ${row.email} ${row.role} ${row.status}`.toLowerCase();
+        const contactText = (row.contacts || [])
+          .map((contact) => [contact.name, contact.email, contact.phone].filter(Boolean).join(" "))
+          .join(" ");
+        const blob = `${row.code} ${row.name} ${row.email} ${contactText}`.toLowerCase();
         if (!blob.includes(query)) return false;
       }
-
       for (const column of columns) {
         const value = (colFilters[column.key] || "").trim().toLowerCase();
         if (!value) continue;
         if (!String(row[column.key] ?? "").toLowerCase().includes(value)) return false;
       }
-
       return true;
     });
   }, [rows, search, colFilters]);
@@ -108,30 +136,53 @@ export default function ContactUsersPage() {
   }
 
   function handleSubmit() {
-    if (!formData.name.trim() || !formData.email.trim()) return;
-
+    if (!formData.name.trim()) return;
     const nextRow = toDisplayRow({
       id: editMode && selected ? selected.id : Math.max(0, ...rows.map((row) => Number(row.id) || 0)) + 1,
+      code: formData.code.trim(),
       name: formData.name.trim(),
       email: formData.email.trim(),
-      role: formData.role.trim(),
-      active: formData.active,
+      contacts: (formData.contacts || [])
+        .map((contact) => ({
+          name: (contact.name || "").trim(),
+          email: (contact.email || "").trim(),
+          phone: (contact.phone || "").trim(),
+        }))
+        .filter((contact) => contact.name || contact.email || contact.phone),
     });
-
     if (editMode && selected) {
       setRows((prev) => prev.map((row) => (row.id === selected.id ? nextRow : row)));
     } else {
       setRows((prev) => [nextRow, ...prev]);
       setSelectedId(nextRow.id);
     }
-
     setModalOpen(false);
     setFormData(buildFormData());
   }
 
+  function setContact(index, key, value) {
+    setFormData((prev) => {
+      const next = [...(prev.contacts || [emptyContact()])];
+      if (!next[index]) next[index] = emptyContact();
+      next[index] = { ...next[index], [key]: value };
+      return { ...prev, contacts: next };
+    });
+  }
+
+  function addContact() {
+    setFormData((prev) => ({ ...prev, contacts: [...(prev.contacts || []), emptyContact()] }));
+  }
+
+  function removeContact(index) {
+    setFormData((prev) => {
+      const next = (prev.contacts || []).filter((_, itemIndex) => itemIndex !== index);
+      return { ...prev, contacts: next.length ? next : [emptyContact()] };
+    });
+  }
+
   function removeSelected() {
     if (!selected) return;
-    if (!window.confirm(`Delete user "${selected.name}" permanently?`)) return;
+    if (!window.confirm(`Delete transporter "${selected.name}" permanently?`)) return;
     setRows((prev) => prev.filter((row) => row.id !== selected.id));
     setSelectedId(null);
   }
@@ -139,9 +190,9 @@ export default function ContactUsersPage() {
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-xs text-slate-500">Contacts / Users</p>
-        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 md:text-[1.65rem]">Users</h1>
-        {!isMobile ? <p className="mt-1 text-xs text-slate-500">Manage users: name, email, role, and status.</p> : null}
+        <p className="text-xs text-slate-500">Contacts / Transporter</p>
+        <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900 md:text-[1.65rem]">Transporter</h1>
+        {!isMobile ? <p className="mt-1 text-xs text-slate-500">Manage transporter master records.</p> : null}
       </div>
 
       <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-sm">
@@ -150,8 +201,8 @@ export default function ContactUsersPage() {
             className={cn(inputClass, "lg:min-w-[240px] lg:flex-1", isMobile && "w-full")}
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search users..."
-            aria-label="Search users"
+            placeholder="Search transporter..."
+            aria-label="Search transporter"
           />
           <div className={cn("flex flex-wrap gap-2 lg:ms-auto", isMobile && "w-full")}>
             <BtnPrimary type="button" onClick={openCreateModal}>
@@ -206,7 +257,7 @@ export default function ContactUsersPage() {
                   {filteredRows.length === 0 ? (
                     <tr>
                       <td colSpan={columns.length} className="px-3 py-14 text-center text-sm text-slate-400">
-                        No users found.
+                        No transporter found.
                       </td>
                     </tr>
                   ) : (
@@ -218,19 +269,10 @@ export default function ContactUsersPage() {
                           onClick={() => setSelectedId((prev) => (prev === row.id ? null : row.id))}
                           className={cn("cursor-pointer border-b border-slate-100 transition-colors last:border-0", isSelected ? "bg-brand/[0.07]" : "hover:bg-slate-50/90")}
                         >
+                          <td className="px-3 py-2.5 font-semibold text-blue-600">{row.code || "—"}</td>
                           <td className="px-3 py-2.5 font-semibold text-slate-900">{row.name || "—"}</td>
                           <td className="px-3 py-2.5 text-slate-700">{row.email || "—"}</td>
-                          <td className="px-3 py-2.5 text-slate-700">{row.role || "—"}</td>
-                          <td className="px-3 py-2.5">
-                            <span
-                              className={cn(
-                                "inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ring-1",
-                                row.active ? "bg-emerald-50 text-emerald-800 ring-emerald-200" : "bg-rose-50 text-rose-800 ring-rose-200"
-                              )}
-                            >
-                              {row.status}
-                            </span>
-                          </td>
+                          <td className="px-3 py-2.5 text-slate-700">{row.contactsCount}</td>
                         </tr>
                       );
                     })
@@ -243,71 +285,85 @@ export default function ContactUsersPage() {
 
         {!isMobile ? (
           <aside className="rounded-xl border border-slate-200/90 bg-white p-5 shadow-sm">
-            <h2 className="text-sm font-semibold text-slate-900">User Details</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Transporter Details</h2>
             {!selected ? (
-              <p className="mt-4 text-sm leading-relaxed text-slate-500">Select a user to view details.</p>
+              <p className="mt-4 text-sm leading-relaxed text-slate-500">Select a transporter to view details.</p>
             ) : (
               <div className="mt-4 space-y-3 text-sm">
+                <DetailItem label="Code" value={selected.code || "—"} />
                 <DetailItem label="Name" value={selected.name} highlight />
-                <DetailItem label="Email" value={selected.email} />
-                <DetailItem label="Role" value={selected.role || "—"} />
-                <DetailItem label="Status" value={selected.status} />
-                <div className="mt-4 flex gap-2 border-t border-slate-200 pt-4">
-                  <BtnSecondary type="button" className="flex-1 justify-center" onClick={openEditModal}>
-                    Edit User
-                  </BtnSecondary>
-                  <BtnDanger type="button" className="flex-1 justify-center" onClick={removeSelected}>
-                    Delete User
-                  </BtnDanger>
-                </div>
+                <DetailItem label="Email" value={selected.email || "—"} />
+                <DetailItem
+                  label="Contact(s)"
+                  value={
+                    selected.contacts?.length
+                      ? selected.contacts.map((contact) => [contact.name, contact.email, contact.phone].filter(Boolean).join(" · ")).join(" | ")
+                      : "—"
+                  }
+                />
               </div>
             )}
           </aside>
         ) : null}
       </div>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editMode ? "Edit User" : "Add New User"} width={500}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editMode ? "Edit transporter" : "Add transporter"} width={500}>
         <div className="space-y-3">
-          <FormRow label="Name" required>
-            <Input value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} placeholder="e.g., J. Mitchell" />
+          <FormRow label="Code (optional)">
+            <Input value={formData.code} onChange={(event) => setFormData({ ...formData, code: event.target.value })} placeholder="Short code" />
           </FormRow>
 
-          <FormRow label="Email" required>
+          <FormRow label="Name" required>
+            <Input value={formData.name} onChange={(event) => setFormData({ ...formData, name: event.target.value })} placeholder="Company name" />
+          </FormRow>
+
+          <FormRow label="Email">
             <Input
               type="email"
               value={formData.email}
               onChange={(event) => setFormData({ ...formData, email: event.target.value })}
-              placeholder="e.g., j.mitchell@mahonys.com.au"
+              placeholder="dispatcher@company.com"
             />
           </FormRow>
 
-          <FormRow label="Role">
-            <Input
-              value={formData.role}
-              onChange={(event) => setFormData({ ...formData, role: event.target.value })}
-              placeholder="e.g., Manager, Supervisor, Operator"
-            />
-          </FormRow>
-
-          <FormRow label="Status">
-            <select
-              className={inputClass}
-              value={formData.active ? "active" : "inactive"}
-              onChange={(event) => setFormData({ ...formData, active: event.target.value === "active" })}
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </FormRow>
+          <div>
+            <div className="mb-2 flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-700">Contact(s)</span>
+              <button
+                type="button"
+                onClick={addContact}
+                className="rounded-md border border-blue-200 bg-blue-50 px-2 py-1 text-[11px] font-semibold text-blue-600 hover:bg-blue-100"
+              >
+                + Add contact
+              </button>
+            </div>
+            {(formData.contacts || []).map((contact, index) => (
+              <div key={index} className="mb-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50/70 p-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-slate-500">Contact {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeContact(index)}
+                    className="rounded border border-rose-200 bg-rose-50 px-1.5 py-0.5 text-[11px] text-rose-600 hover:bg-rose-100"
+                  >
+                    Remove
+                  </button>
+                </div>
+                <Input value={contact.name} onChange={(event) => setContact(index, "name", event.target.value)} placeholder="Contact Name" />
+                <Input type="email" value={contact.email} onChange={(event) => setContact(index, "email", event.target.value)} placeholder="Contact Email" />
+                <Input type="tel" value={contact.phone} onChange={(event) => setContact(index, "phone", event.target.value)} placeholder="Contact Phone" />
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-5 flex gap-2 border-t border-slate-200 pt-4">
-          <BtnPrimary type="button" className="flex-1 justify-center" onClick={handleSubmit}>
-            {editMode ? "Update User" : "Add User"}
-          </BtnPrimary>
-          <BtnSecondary type="button" className="flex-1 justify-center" onClick={() => setModalOpen(false)}>
+        <div className="mt-5 flex justify-end gap-2 border-t border-slate-200 pt-4">
+          <BtnSecondary type="button" onClick={() => setModalOpen(false)}>
             Cancel
           </BtnSecondary>
+          <BtnPrimary type="button" onClick={handleSubmit}>
+            {editMode ? "Update" : "Add"}
+          </BtnPrimary>
         </div>
       </Modal>
 
@@ -326,10 +382,10 @@ export default function ContactUsersPage() {
 }
 
 function MobileList({ rows, selectedId, onSelect, search }) {
-  const emptyMessage = search ? "No users match your search." : "No users found. Add your first one!";
+  const emptyMessage = search ? "No transporter match your search." : "No transporter found. Add your first one!";
   return (
     <div className="space-y-2 p-3">
-      <div className="px-0.5 text-xs font-semibold text-slate-600">Users ({rows.length})</div>
+      <div className="px-0.5 text-xs font-semibold text-slate-600">Transporter ({rows.length})</div>
       {rows.length === 0 ? (
         <div className="py-8 text-center text-sm text-slate-400">{emptyMessage}</div>
       ) : (
@@ -342,19 +398,10 @@ function MobileList({ rows, selectedId, onSelect, search }) {
               onClick={() => onSelect(isSelected ? null : row.id)}
               className={cn("w-full rounded-xl border-2 px-3 py-3 text-left transition-colors", isSelected ? "border-blue-500 bg-blue-50" : "border-slate-200 bg-white")}
             >
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-semibold text-slate-800">{row.name || "—"}</p>
-                <span
-                  className={cn(
-                    "inline-flex rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1",
-                    row.active ? "bg-emerald-50 text-emerald-800 ring-emerald-200" : "bg-rose-50 text-rose-800 ring-rose-200"
-                  )}
-                >
-                  {row.status}
-                </span>
-              </div>
+              <p className="text-xs font-bold text-blue-600">{row.code || "—"}</p>
+              <p className="mt-1 text-sm font-semibold text-slate-800">{row.name || "—"}</p>
               <p className="mt-1 text-xs text-slate-600">{row.email || "—"}</p>
-              <p className="mt-1 text-[11px] text-slate-500">{row.role || "—"}</p>
+              <p className="mt-1 text-[11px] text-slate-500">{row.contactsCount}</p>
             </button>
           );
         })
@@ -380,12 +427,12 @@ function Modal({ open, title, onClose, children, width = 640 }) {
       <div
         role="dialog"
         aria-modal="true"
-        aria-labelledby="users-modal-title"
+        aria-labelledby="transporter-modal-title"
         className="relative max-h-[min(90vh,720px)] w-full overflow-y-auto rounded-xl border border-slate-200 bg-white shadow-xl"
         style={{ maxWidth: `${width}px` }}
       >
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white px-4 py-3">
-          <h2 id="users-modal-title" className="text-sm font-semibold text-slate-900">
+          <h2 id="transporter-modal-title" className="text-sm font-semibold text-slate-900">
             {title}
           </h2>
           <button type="button" className="rounded-md px-2 py-1 text-lg text-slate-500 hover:bg-slate-100 hover:text-slate-800" onClick={onClose}>
