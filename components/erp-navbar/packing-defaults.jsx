@@ -49,6 +49,11 @@ export const PACKING_NAV_MODULES = [
     icon: <Package className="size-5" strokeWidth={1.5} />,
   },
   {
+    name: "System settings",
+    href: "/system-settings",
+    icon: <Package className="size-5" strokeWidth={1.5} />,
+  },
+  {
     name: "Packers schedule",
     href: "/packers-schedule",
     icon: <Users className="size-5" strokeWidth={1.5} />,
