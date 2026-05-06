@@ -30,7 +30,7 @@ export const PACKING_NAV_DEFAULT_UI = {
   userEmail: "ops@packing.local",
   userInitials: "AS",
   avatarSrc: "",
-  accountSettingsHref: "/system-settings",
+  accountSettingsHref: "/contact",
 };
 
 export const PACKING_NAV_MODULES = [
@@ -41,7 +41,7 @@ export const PACKING_NAV_MODULES = [
     children: [
       { name: "Overview", href: "/" },
       { name: "Reference data", href: "/reference-data" },
-      { name: "System settings", href: "/system-settings" },
+      { name: "Contacts", href: "/contact" },
       { name: "Product settings", href: "/product-settings" },
     ],
   },
@@ -79,8 +79,8 @@ export const PACKING_NAV_FOOTER = [
     icon: <HelpCircle className="size-5" strokeWidth={1.5} />,
   },
   {
-    name: "Settings",
-    href: "/system-settings",
+    name: "System settings",
+    href: "/more-settings/site",
     icon: <Settings2 className="size-5" strokeWidth={1.5} />,
   },
 ];
