@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { COMMODITY_MASTER_ROWS, COMMODITY_TYPE_MASTER_ROWS } from "@/lib/master-data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -21,31 +22,21 @@ const config = {
         { key: "status", label: "STATUS" },
         { key: "shrinkAmount", label: "SHRINK" },
     ],
-    rows: [
-        {
-            id: 1,
-            commodityCode: "COM-001",
-            description: "Australian Hard Wheat",
-            commodityType: "Wheat",
-            status: "Active",
-            shrinkAmount: "2%",
-        },
-        {
-            id: 2,
-            commodityCode: "COM-002",
-            description: "Premium Malt Barley",
-            commodityType: "Barley",
-            status: "Active",
-            shrinkAmount: "1.5%",
-        },
-    ],
+    rows: COMMODITY_MASTER_ROWS.map((row) => ({
+        id: row.id,
+        commodityCode: row.commodityCode,
+        description: row.description,
+        commodityType: row.commodityTypeName,
+        status: row.status,
+        shrinkAmount: row.shrinkAmount,
+    })),
     formFields: [
         {
             key: "commodityType",
             label: "COMMODITY TYPE",
             required: true,
             type: "select",
-            options: ["Wheat", "Barley", "Canola", "Oats"],
+            options: COMMODITY_TYPE_MASTER_ROWS.map((row) => row.name),
         },
         { key: "commodityCode", label: "COMMODITY CODE", required: true, placeholder: "e.g., COM-001" },
         { key: "description", label: "DESCRIPTION", required: true, placeholder: "e.g., Australian Hard Wheat" },

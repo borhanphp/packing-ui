@@ -5,6 +5,7 @@
  */
 
 import {
+  CircleDollarSign,
   FlaskConical,
   HelpCircle,
   LayoutDashboard,
@@ -61,6 +62,11 @@ export const PACKING_NAV_MODULES = [
     name: "Transactions",
     href: "/transactions",
     icon: <Waypoints className="size-5" strokeWidth={1.5} />,
+  },
+  {
+    name: "Accounting",
+    href: "/accounting",
+    icon: <CircleDollarSign className="size-5" strokeWidth={1.5} />,
   },
   {
     name: "Fumigation",
