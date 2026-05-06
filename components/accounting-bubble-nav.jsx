@@ -7,9 +7,9 @@ import { SectionRouteDropdown } from "@/components/section-route-dropdown";
 import { ACCOUNTING_NAV } from "@/lib/accounting-nav";
 import { cn } from "@/lib/utils";
 
-const ACCOUNTING_ITEMS = ACCOUNTING_NAV.map(({ slug, label }) => ({
+const ACCOUNTING_ITEMS = ACCOUNTING_NAV.map(({ slug, label, href }) => ({
   label,
-  href: `/accounting/${slug}`,
+  href: href ?? `/accounting/${slug}`,
 }));
 
 function AccountingTabs() {
@@ -21,8 +21,8 @@ function AccountingTabs() {
       className="flex w-full min-w-0 flex-nowrap items-end gap-1 overflow-x-auto py-0 [scrollbar-width:thin]"
       role="tablist"
     >
-      {ACCOUNTING_NAV.map(({ slug, label }) => {
-        const href = `/accounting/${slug}`;
+      {ACCOUNTING_NAV.map(({ slug, label, href: itemHref }) => {
+        const href = itemHref ?? `/accounting/${slug}`;
         const active = pathname === href;
 
         return (

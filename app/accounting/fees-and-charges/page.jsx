@@ -20,6 +20,8 @@ const CHARGE_CLASSIFICATIONS = [
 
 const inputClass =
   "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-blue-100 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2";
+const filterInputClass =
+  "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
 
 const initialFeesAndCharges = [
   {
@@ -106,6 +108,15 @@ function nextId(items) {
 export default function FeesAndChargesPage() {
   const [feesAndCharges, setFeesAndCharges] = useState(initialFeesAndCharges);
   const [search, setSearch] = useState("");
+  const [colFilters, setColFilters] = useState({
+    chargeName: "",
+    chargeDescription: "",
+    chargeRate: "",
+    chargeType: "",
+    chargeClassification: "",
+    accountCode: "",
+    applyToAllPacks: "",
+  });
   const [selectedId, setSelectedId] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -129,14 +140,33 @@ export default function FeesAndChargesPage() {
   }, []);
 
   const filtered = useMemo(() => {
+    const columnValue = (charge, key) => {
+      if (key === "chargeClassification") return getClassLabel(charge);
+      if (key === "applyToAllPacks") return charge.applyToAllPacks ? "Yes" : "No";
+      return charge[key] ?? "";
+    };
+
     return feesAndCharges
       .filter((charge) => {
-        if (!search) return true;
-        const text = `${charge.chargeName || ""} ${charge.chargeDescription || ""} ${charge.chargeType || ""}`.toLowerCase();
-        return text.includes(search.toLowerCase());
+        const q = search.trim().toLowerCase();
+        if (q) {
+          const text =
+            `${charge.chargeName || ""} ${charge.chargeDescription || ""} ${charge.chargeType || ""} ` +
+            `${getClassLabel(charge)} ${charge.accountCode || ""} ${charge.chargeRate ?? ""} ${
+              charge.applyToAllPacks ? "Yes" : "No"
+            }`;
+          if (!text.toLowerCase().includes(q)) return false;
+        }
+
+        for (const key of Object.keys(colFilters)) {
+          const value = colFilters[key].trim().toLowerCase();
+          if (!value) continue;
+          if (!String(columnValue(charge, key)).toLowerCase().includes(value)) return false;
+        }
+        return true;
       })
       .sort((a, b) => (a.chargeName || "").localeCompare(b.chargeName || ""));
-  }, [feesAndCharges, search]);
+  }, [feesAndCharges, search, colFilters]);
 
   const selected = filtered.find((charge) => charge.id === selectedId) || null;
 
@@ -267,18 +297,83 @@ export default function FeesAndChargesPage() {
         {isMobile ? (
           <MobileChargeList filtered={filtered} selectedId={selectedId} onSelectCharge={setSelectedId} search={search} />
         ) : (
-          <div className="min-w-0 flex-1 overflow-hidden rounded-[10px] border border-slate-200 bg-white">
+          <div className="min-w-0 flex-1 overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[860px] border-collapse text-left text-sm">
                 <thead>
                   <tr className="border-b border-slate-200 bg-slate-50/95">
-                    <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Charge Name</th>
-                    <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Description</th>
-                    <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Rate</th>
-                    <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Type</th>
-                    <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Class.</th>
-                    <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">Account</th>
-                    <th className="px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-slate-500">All Packs</th>
+                    <th className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">Charge Name</th>
+                    <th className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">Description</th>
+                    <th className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">Rate</th>
+                    <th className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">Type</th>
+                    <th className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">Class.</th>
+                    <th className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">Account</th>
+                    <th className="px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500">All Packs</th>
+                  </tr>
+                  <tr className="border-b border-slate-200 bg-white">
+                    <th className="px-2 py-1.5">
+                      <input
+                        className={filterInputClass}
+                        placeholder="Filter..."
+                        value={colFilters.chargeName}
+                        onChange={(event) => setColFilters((prev) => ({ ...prev, chargeName: event.target.value }))}
+                        aria-label="Filter charge name"
+                      />
+                    </th>
+                    <th className="px-2 py-1.5">
+                      <input
+                        className={filterInputClass}
+                        placeholder="Filter..."
+                        value={colFilters.chargeDescription}
+                        onChange={(event) => setColFilters((prev) => ({ ...prev, chargeDescription: event.target.value }))}
+                        aria-label="Filter description"
+                      />
+                    </th>
+                    <th className="px-2 py-1.5">
+                      <input
+                        className={filterInputClass}
+                        placeholder="Filter..."
+                        value={colFilters.chargeRate}
+                        onChange={(event) => setColFilters((prev) => ({ ...prev, chargeRate: event.target.value }))}
+                        aria-label="Filter rate"
+                      />
+                    </th>
+                    <th className="px-2 py-1.5">
+                      <input
+                        className={filterInputClass}
+                        placeholder="Filter..."
+                        value={colFilters.chargeType}
+                        onChange={(event) => setColFilters((prev) => ({ ...prev, chargeType: event.target.value }))}
+                        aria-label="Filter type"
+                      />
+                    </th>
+                    <th className="px-2 py-1.5">
+                      <input
+                        className={filterInputClass}
+                        placeholder="Filter..."
+                        value={colFilters.chargeClassification}
+                        onChange={(event) => setColFilters((prev) => ({ ...prev, chargeClassification: event.target.value }))}
+                        aria-label="Filter classification"
+                      />
+                    </th>
+                    <th className="px-2 py-1.5">
+                      <input
+                        className={filterInputClass}
+                        placeholder="Filter..."
+                        value={colFilters.accountCode}
+                        onChange={(event) => setColFilters((prev) => ({ ...prev, accountCode: event.target.value }))}
+                        aria-label="Filter account code"
+                      />
+                    </th>
+                    <th className="px-2 py-1.5">
+                      <input
+                        className={filterInputClass}
+                        placeholder="Filter..."
+                        value={colFilters.applyToAllPacks}
+                        onChange={(event) => setColFilters((prev) => ({ ...prev, applyToAllPacks: event.target.value }))}
+                        aria-label="Filter all packs"
+                      />
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -297,21 +392,19 @@ export default function FeesAndChargesPage() {
                           onClick={() => setSelectedId((prev) => (prev === charge.id ? null : charge.id))}
                           className={cn(
                             "cursor-pointer border-b border-slate-100 transition-colors last:border-0",
-                            isSelected ? "bg-blue-50" : "hover:bg-slate-50/90"
+                            isSelected ? "bg-brand/[0.07]" : "hover:bg-slate-50/90"
                           )}
                         >
-                          <td className="px-3 py-2 text-xs font-bold text-blue-600">{charge.chargeName || "-"}</td>
-                          <td className="px-3 py-2 text-[11.5px] text-slate-500">
+                          <td className="px-3 py-2.5 text-slate-700">{charge.chargeName || "—"}</td>
+                          <td className="px-3 py-2.5 text-slate-700">
                             {(charge.chargeDescription || "-").slice(0, 40)}
                             {(charge.chargeDescription || "").length > 40 ? "..." : ""}
                           </td>
-                          <td className="px-3 py-2 text-xs font-semibold text-slate-800">
-                            {charge.chargeRate != null ? Number(charge.chargeRate) : "-"}
-                          </td>
-                          <td className="px-3 py-2 text-[11.5px] text-slate-500">{charge.chargeType || "-"}</td>
-                          <td className="px-3 py-2 text-[11.5px] text-slate-700">{getClassLabel(charge)}</td>
-                          <td className="px-3 py-2 text-[11.5px] text-slate-700">{charge.accountCode || "-"}</td>
-                          <td className="px-3 py-2 text-[11.5px] text-slate-700">{charge.applyToAllPacks ? "Yes" : "No"}</td>
+                          <td className="px-3 py-2.5 text-slate-700">{charge.chargeRate != null ? Number(charge.chargeRate) : "—"}</td>
+                          <td className="px-3 py-2.5 text-slate-700">{charge.chargeType || "—"}</td>
+                          <td className="px-3 py-2.5 text-slate-700">{getClassLabel(charge)}</td>
+                          <td className="px-3 py-2.5 text-slate-700">{charge.accountCode || "—"}</td>
+                          <td className="px-3 py-2.5 text-slate-700">{charge.applyToAllPacks ? "Yes" : "No"}</td>
                         </tr>
                       );
                     })
@@ -397,6 +490,7 @@ export default function FeesAndChargesPage() {
             min={0}
             step={0.01}
             value={formData.chargeRate}
+            onWheel={(event) => event.currentTarget.blur()}
             onChange={(event) => setFormData({ ...formData, chargeRate: event.target.value })}
             placeholder="0.00"
           />

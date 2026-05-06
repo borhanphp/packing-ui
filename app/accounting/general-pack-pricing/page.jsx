@@ -359,6 +359,7 @@ export default function GeneralPackPricingPage() {
                     step={0.01}
                     value={entry?.price ?? ""}
                     placeholder="-"
+                    onWheel={(event) => event.currentTarget.blur()}
                     onChange={(event) => handleDefaultPriceChange(type.id, size, event.target.value)}
                     disabled={!defaultPricesEditing}
                     className={cn(inputClass, !defaultPricesEditing && "cursor-not-allowed bg-slate-100")}
@@ -668,6 +669,7 @@ export default function GeneralPackPricingPage() {
             min={0}
             step={0.01}
             value={cpForm.price}
+            onWheel={(event) => event.currentTarget.blur()}
             onChange={(event) => setCpForm({ ...cpForm, price: event.target.value })}
             placeholder="0"
           />
@@ -720,6 +722,7 @@ export default function GeneralPackPricingPage() {
             min={0}
             step={0.01}
             value={ctcpForm.price}
+            onWheel={(event) => event.currentTarget.blur()}
             onChange={(event) => setCtcpForm({ ...ctcpForm, price: event.target.value })}
             placeholder="0"
           />
@@ -771,6 +774,7 @@ export default function GeneralPackPricingPage() {
             min={0}
             step={0.01}
             value={ccpForm.price}
+            onWheel={(event) => event.currentTarget.blur()}
             onChange={(event) => setCcpForm({ ...ccpForm, price: event.target.value })}
             placeholder="0"
           />

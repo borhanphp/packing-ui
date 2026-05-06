@@ -18,9 +18,9 @@ const columns = [
 ];
 
 const initialRows = [
-  { id: 1, name: "Alec Stead", email: "ops@packing.local", role: "Administrator", active: true },
-  { id: 2, name: "Jordan Miles", email: "warehouse@packing.local", role: "Warehouse", active: true },
-  { id: 3, name: "Sam Rivera", email: "finance@packing.local", role: "Read only", active: false },
+  { id: 1, name: "Alec Stead", email: "ops@packing.local", role: "Administrator", active: true, password: "", passwordUpdatedAt: "" },
+  { id: 2, name: "Jordan Miles", email: "warehouse@packing.local", role: "Warehouse", active: true, password: "", passwordUpdatedAt: "" },
+  { id: 3, name: "Sam Rivera", email: "finance@packing.local", role: "Read only", active: false, password: "", passwordUpdatedAt: "" },
 ];
 
 function toDisplayRow(row) {
@@ -37,6 +37,8 @@ function buildFormData(row) {
       email: "",
       role: "",
       active: true,
+      newPassword: "",
+      confirmPassword: "",
     };
   }
   return {
@@ -44,6 +46,8 @@ function buildFormData(row) {
     email: row.email || "",
     role: row.role || "",
     active: row.active !== false,
+    newPassword: "",
+    confirmPassword: "",
   };
 }
 
@@ -109,6 +113,19 @@ export default function ContactUsersPage() {
 
   function handleSubmit() {
     if (!formData.name.trim() || !formData.email.trim()) return;
+    const nextPassword = (formData.newPassword || "").trim();
+    const confirmPassword = (formData.confirmPassword || "").trim();
+
+    if (nextPassword || confirmPassword) {
+      if (nextPassword.length < 8) {
+        window.alert("Password must be at least 8 characters.");
+        return;
+      }
+      if (nextPassword !== confirmPassword) {
+        window.alert("Password confirmation does not match.");
+        return;
+      }
+    }
 
     const nextRow = toDisplayRow({
       id: editMode && selected ? selected.id : Math.max(0, ...rows.map((row) => Number(row.id) || 0)) + 1,
@@ -116,6 +133,8 @@ export default function ContactUsersPage() {
       email: formData.email.trim(),
       role: formData.role.trim(),
       active: formData.active,
+      password: editMode && selected ? (nextPassword ? nextPassword : selected.password || "") : nextPassword,
+      passwordUpdatedAt: editMode && selected ? (nextPassword ? new Date().toISOString() : selected.passwordUpdatedAt || "") : nextPassword ? new Date().toISOString() : "",
     });
 
     if (editMode && selected) {
@@ -252,6 +271,10 @@ export default function ContactUsersPage() {
                 <DetailItem label="Email" value={selected.email} />
                 <DetailItem label="Role" value={selected.role || "—"} />
                 <DetailItem label="Status" value={selected.status} />
+                <DetailItem
+                  label="Password Last Updated"
+                  value={selected.passwordUpdatedAt ? new Date(selected.passwordUpdatedAt).toLocaleString() : "Never"}
+                />
                 <div className="mt-4 flex gap-2 border-t border-slate-200 pt-4">
                   <BtnSecondary type="button" className="flex-1 justify-center" onClick={openEditModal}>
                     Edit User
@@ -299,6 +322,27 @@ export default function ContactUsersPage() {
               <option value="inactive">Inactive</option>
             </select>
           </FormRow>
+
+          {editMode ? (
+            <>
+              <FormRow label="New Password">
+                <Input
+                  type="password"
+                  value={formData.newPassword}
+                  onChange={(event) => setFormData({ ...formData, newPassword: event.target.value })}
+                  placeholder="Leave blank to keep current password"
+                />
+              </FormRow>
+              <FormRow label="Confirm New Password">
+                <Input
+                  type="password"
+                  value={formData.confirmPassword}
+                  onChange={(event) => setFormData({ ...formData, confirmPassword: event.target.value })}
+                  placeholder="Re-enter new password"
+                />
+              </FormRow>
+            </>
+          ) : null}
         </div>
 
         <div className="mt-5 flex gap-2 border-t border-slate-200 pt-4">

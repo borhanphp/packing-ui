@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { TRANSPORTER_MASTER_ROWS } from "@/lib/master-data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -17,25 +18,7 @@ const columns = [
   { key: "contactsCount", label: "Contacts" },
 ];
 
-const initialRows = [
-  {
-    id: 1,
-    code: "TR-01",
-    name: "Fast Haul Logistics",
-    email: "ops@fasthaul.example",
-    contacts: [
-      { name: "Mia Carter", email: "mia@fasthaul.example", phone: "+61 3 9000 4011" },
-      { name: "Dock Team", email: "dock@fasthaul.example", phone: "+61 3 9000 4012" },
-    ],
-  },
-  {
-    id: 2,
-    code: "TR-02",
-    name: "BlueRoad Transport",
-    email: "dispatch@blueroad.example",
-    contacts: [{ name: "Liam Ford", email: "liam@blueroad.example", phone: "+61 7 4100 2199" }],
-  },
-];
+const initialRows = TRANSPORTER_MASTER_ROWS;
 
 const emptyContact = () => ({ name: "", email: "", phone: "" });
 
