@@ -41,13 +41,17 @@ export const PACKING_NAV_MODULES = [
     children: [
       { name: "Overview", href: "/" },
       { name: "Reference data", href: "/reference-data" },
-      { name: "System settings", href: "/system-settings" },
       { name: "Product settings", href: "/product-settings" },
     ],
   },
   {
     name: "Packing schedule",
     href: "/packing-schedule",
+    icon: <Package className="size-5" strokeWidth={1.5} />,
+  },
+  {
+    name: "System settings",
+    href: "/system-settings",
     icon: <Package className="size-5" strokeWidth={1.5} />,
   },
   {

@@ -1,15 +1,14 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
+import { Grid } from "@/components/clutch-table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
 const inputClass =
     "w-full rounded-lg border border-slate-200/95 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-brand/15 placeholder:text-slate-400 focus:border-brand/35 focus:ring-2";
-const filterInputClass =
-    "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
 
 const config = {
     title: "Commodities",
@@ -87,10 +86,18 @@ function parseFieldValue(field, value) {
     return Number.isNaN(parsed) ? value : String(parsed);
 }
 
+// Column definitions for clutch-table Grid
+const gridColumns = config.columns.map((col) => ({
+    key: col.key,
+    header: col.label,
+    type: col.numeric ? "number" : "text",
+    sortable: true,
+    filterable: true,
+    resizable: true,
+}));
+
 export default function CommodityPage() {
     const [rows, setRows] = useState(() => [...config.rows]);
-    const [search, setSearch] = useState("");
-    const [colFilters, setColFilters] = useState(() => Object.fromEntries(config.columns.map((column) => [column.key, ""])));
     const [selectedId, setSelectedId] = useState(null);
     const [modalMode, setModalMode] = useState(null);
     const [draft, setDraft] = useState(() => buildDraft());
@@ -115,23 +122,7 @@ export default function CommodityPage() {
         return () => window.removeEventListener("scroll", onScroll);
     }, [isMobile]);
 
-    const filteredRows = useMemo(() => {
-        return rows.filter((row) => {
-            const q = search.trim().toLowerCase();
-            if (q) {
-                const blob = config.columns.map((column) => String(row[column.key] ?? "")).join(" ").toLowerCase();
-                if (!blob.includes(q)) return false;
-            }
-            for (const column of config.columns) {
-                const value = (colFilters[column.key] || "").trim().toLowerCase();
-                if (!value) continue;
-                if (!String(row[column.key] ?? "").toLowerCase().includes(value)) return false;
-            }
-            return true;
-        });
-    }, [rows, search, colFilters]);
-
-    const selected = selectedId != null ? filteredRows.find((row) => row.id === selectedId) ?? null : null;
+    const selected = selectedId != null ? rows.find((row) => row.id === selectedId) ?? null : null;
 
     function openAddModal() {
         setDraft(buildDraft());
@@ -182,94 +173,38 @@ export default function CommodityPage() {
                 {!isMobile ? <p className="mt-1 text-xs text-slate-500">{config.subtitle}</p> : null}
             </div>
 
-            <div className="rounded-xl border border-slate-200/90 bg-white p-3 shadow-sm">
-                <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
-                    <input
-                        className={cn(inputClass, "lg:min-w-[240px] lg:flex-1", isMobile && "w-full")}
-                        value={search}
-                        onChange={(event) => setSearch(event.target.value)}
-                        placeholder={`Search ${config.title.toLowerCase()}...`}
-                        aria-label={`Search ${config.title}`}
-                    />
-                    <div className={cn("flex flex-wrap gap-2 lg:ms-auto", isMobile && "w-full")}>
-                        <Button type="button" size="sm" onClick={openAddModal}>+ Add</Button>
-                        {isMobile && selected ? (
-                            <Button type="button" size="sm" disabled={!selected} onClick={openEditModal}>View / Edit</Button>
-                        ) : (
-                            <Button type="button" variant="outline" size="sm" disabled={!selected} onClick={openEditModal}>Edit</Button>
-                        )}
-                        <Button type="button" variant="destructive" size="sm" disabled={!selected} onClick={removeSelected}>Delete</Button>
-                    </div>
-                </div>
-            </div>
-
             <div className={cn("grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(240px,320px)] xl:items-start", isMobile && "grid-cols-1")}>
-                <div className="overflow-hidden rounded-xl border border-slate-200/90 bg-white shadow-sm">
+                <div className="overflow-hidden rounded-xl bg-white shadow-sm">
                     {isMobile ? (
                         <MobileList
-                            rows={filteredRows}
+                            rows={rows}
                             selectedId={selectedId}
                             onSelect={setSelectedId}
-                            search={search}
+                            search=""
                             title={config.title}
                             primaryKey={config.columns[0]?.key}
                             secondaryKey={config.columns[2]?.key ?? config.columns[1]?.key}
                             summaryKeys={config.columns.slice(1, 4).map((column) => column.key)}
                         />
                     ) : (
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-                                <thead>
-                                    <tr className="border-b border-slate-200 bg-slate-50/95">
-                                        {config.columns.map((column) => (
-                                            <th
-                                                key={column.key}
-                                                className={cn("whitespace-nowrap px-3 py-2.5 text-[10px] font-bold uppercase tracking-wide text-slate-500", column.numeric && "text-right")}
-                                            >
-                                                {column.label}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                    <tr className="border-b border-slate-200 bg-white">
-                                        {config.columns.map((column) => (
-                                            <th key={`filter-${column.key}`} className="px-2 py-1.5">
-                                                <input
-                                                    className={filterInputClass}
-                                                    placeholder="Filter..."
-                                                    value={colFilters[column.key]}
-                                                    onChange={(event) => setColFilters((prev) => ({ ...prev, [column.key]: event.target.value }))}
-                                                    aria-label={`Filter ${column.label}`}
-                                                />
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {filteredRows.length === 0 ? (
-                                        <tr>
-                                            <td colSpan={config.columns.length} className="px-3 py-14 text-center text-sm text-slate-400">No rows found.</td>
-                                        </tr>
-                                    ) : (
-                                        filteredRows.map((row) => {
-                                            const isSelected = selectedId === row.id;
-                                            return (
-                                                <tr
-                                                    key={row.id}
-                                                    onClick={() => setSelectedId((prev) => (prev === row.id ? null : row.id))}
-                                                    className={cn("cursor-pointer border-b border-slate-100 transition-colors last:border-0", isSelected ? "bg-brand/[0.07]" : "hover:bg-slate-50/90")}
-                                                >
-                                                    {config.columns.map((column) => (
-                                                        <td key={`${row.id}-${column.key}`} className={cn("px-3 py-2.5 text-slate-700", column.numeric && "text-right tabular-nums")}>
-                                                            {row[column.key] || "—"}
-                                                        </td>
-                                                    ))}
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
+                        <Grid
+                            columns={gridColumns}
+                            rows={rows}
+                            getRowId={(row) => row.id}
+                            theme="light"
+                            density="standard"
+                            fileName={config.title}
+                            visibleRows={10}
+                            onRowClick={(row) => setSelectedId((prev) => (prev === row.id ? null : row.id))}
+                            getRowClassName={({ row }) => row.id === selectedId ? "clutch-row-selected" : undefined}
+                            toolbarActions={
+                                <div className="flex flex-wrap gap-2">
+                                    <Button type="button" size="sm" onClick={openAddModal}>+ Add</Button>
+                                    <Button type="button" variant="outline" size="sm" disabled={!selected} onClick={openEditModal}>Edit</Button>
+                                    <Button type="button" variant="destructive" size="sm" disabled={!selected} onClick={removeSelected}>Delete</Button>
+                                </div>
+                            }
+                        />
                     )}
                 </div>
 
@@ -336,13 +271,13 @@ function FormField({ field, value, onChange }) {
                     <div className="rounded-md border border-amber-200 bg-[#fff8e1] p-3 text-xs text-amber-900 shadow-sm">
                         <span className="font-bold text-amber-950">Note:</span> Each commodity IS a specific grade. Tests help identify and confirm the commodity. Example: Create separate commodities for "Wheat Grade 1", "Wheat Grade 2", etc.
                     </div>
-                    
+
                     <div className="space-y-2">
                         {(value || []).map((item, index) => (
                             <div key={index} className="flex items-start gap-2 rounded-md border border-slate-200 bg-slate-50/50 p-2 shadow-sm">
                                 <div className="flex-1 space-y-1">
                                     <label className="text-[10px] font-semibold uppercase text-slate-500">Test</label>
-                                    <select 
+                                    <select
                                         className={inputClass}
                                         value={item.test}
                                         onChange={(e) => {
@@ -359,8 +294,8 @@ function FormField({ field, value, onChange }) {
                                 </div>
                                 <div className="w-20 space-y-1">
                                     <label className="text-[10px] font-semibold uppercase text-slate-500">Min</label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         className={inputClass}
                                         value={item.min}
                                         onChange={(e) => {
@@ -373,8 +308,8 @@ function FormField({ field, value, onChange }) {
                                 </div>
                                 <div className="w-20 space-y-1">
                                     <label className="text-[10px] font-semibold uppercase text-slate-500">Max</label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         className={inputClass}
                                         value={item.max}
                                         onChange={(e) => {
@@ -386,8 +321,8 @@ function FormField({ field, value, onChange }) {
                                     />
                                 </div>
                                 <div className="pt-[22px]">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         className="flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-md border border-red-200 bg-red-50 text-red-500 transition-colors hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500/30"
                                         onClick={() => {
                                             const next = [...value];
@@ -401,11 +336,11 @@ function FormField({ field, value, onChange }) {
                             </div>
                         ))}
                     </div>
-                    
-                    <Button 
-                        type="button" 
-                        variant="default" 
-                        className="w-full bg-blue-500 text-white hover:bg-blue-600 shadow-sm" 
+
+                    <Button
+                        type="button"
+                        variant="default"
+                        className="w-full bg-blue-500 text-white hover:bg-blue-600 shadow-sm"
                         onClick={() => {
                             onChange([...(value || []), { test: "", min: "", max: "" }]);
                         }}
