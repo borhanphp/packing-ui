@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { COMMODITY_MASTER_ROWS, COMMODITY_TYPE_MASTER_ROWS } from "@/lib/master-data";
+import { COMMODITY_MASTER_ROWS, COMMODITY_TEST_DEFINITIONS, COMMODITY_TYPE_MASTER_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -23,12 +23,8 @@ const config = {
         { key: "shrinkAmount", label: "SHRINK" },
     ],
     rows: COMMODITY_MASTER_ROWS.map((row) => ({
-        id: row.id,
-        commodityCode: row.commodityCode,
-        description: row.description,
+        ...row,
         commodityType: row.commodityTypeName,
-        status: row.status,
-        shrinkAmount: row.shrinkAmount,
     })),
     formFields: [
         {
@@ -343,9 +339,11 @@ function FormField({ field, value, onChange }) {
                                         }}
                                     >
                                         <option value="">Select test</option>
-                                        <option value="Protein">Protein</option>
-                                        <option value="Moisture">Moisture</option>
-                                        <option value="Test Weight">Test Weight</option>
+                                        {COMMODITY_TEST_DEFINITIONS.map((test) => (
+                                            <option key={test.id} value={test.name}>
+                                                {test.name}
+                                            </option>
+                                        ))}
                                     </select>
                                 </div>
                                 <div className="w-20 space-y-1">

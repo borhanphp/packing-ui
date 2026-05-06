@@ -7,19 +7,15 @@ import {
   COMMODITY_TYPE_MASTER_ROWS,
   CUSTOMER_MASTER_ROWS,
   DEFAULT_CONTAINER_SIZES,
-} from "@/lib/master-data";
+  GENERAL_PACK_PRICING_STATE,
+} from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
 const inputClass =
   "w-full rounded-lg border border-slate-200/95 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-brand/15 placeholder:text-slate-400 focus:border-brand/35 focus:ring-2";
 
-const initialPricingState = {
-  defaultPackingPrices: [],
-  commodityPrices: [],
-  commodityTypeCustomerPrices: [],
-  commodityCustomerPrices: [],
-};
+const initialPricingState = GENERAL_PACK_PRICING_STATE;
 
 function nextId(items) {
   return Math.max(0, ...items.map((item) => Number(item.id) || 0)) + 1;
@@ -60,7 +56,12 @@ export default function GeneralPackPricingPage() {
   const customers = useMemo(() => CUSTOMER_MASTER_ROWS.map((row) => ({ ...row })), []);
   const containerSizes = useMemo(() => DEFAULT_CONTAINER_SIZES, []);
 
-  const [pricingState, setPricingState] = useState(initialPricingState);
+  const [pricingState, setPricingState] = useState(() => ({
+    defaultPackingPrices: initialPricingState.defaultPackingPrices.map((item) => ({ ...item })),
+    commodityPrices: initialPricingState.commodityPrices.map((item) => ({ ...item })),
+    commodityTypeCustomerPrices: initialPricingState.commodityTypeCustomerPrices.map((item) => ({ ...item })),
+    commodityCustomerPrices: initialPricingState.commodityCustomerPrices.map((item) => ({ ...item })),
+  }));
   const { defaultPackingPrices, commodityPrices, commodityTypeCustomerPrices, commodityCustomerPrices } = pricingState;
 
   const [isMobile, setIsMobile] = useState(false);

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { DEFAULT_CONTAINER_SIZES, TRANSPORTER_MASTER_ROWS } from "@/lib/master-data";
+import { DEFAULT_CONTAINER_SIZES, GENERAL_TRANSPORT_PRICE_ROWS, TRANSPORTER_MASTER_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -13,7 +13,7 @@ const inputClass =
 const filterInputClass =
   "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
 
-const initialTransportPrices = [];
+const initialTransportPrices = GENERAL_TRANSPORT_PRICE_ROWS;
 
 function nextId(items) {
   return Math.max(0, ...items.map((item) => Number(item.id) || 0)) + 1;

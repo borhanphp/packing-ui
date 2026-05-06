@@ -3,13 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { PACKING_NAV_MODULES } from "@/components/erp-navbar/packing-defaults";
+import { USER_PERMISSION_USER_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
-
-const USERS = [
-  { id: 1, name: "Alec Stead", email: "ops@packing.local", role: "Administrator" },
-  { id: 2, name: "Jordan Miles", email: "warehouse@packing.local", role: "Warehouse" },
-  { id: 3, name: "Sam Rivera", email: "finance@packing.local", role: "Read only" },
-];
 
 const MOBILE_BREAKPOINT = 900;
 const inputClass =
@@ -53,7 +48,7 @@ export default function UserPermissionPage() {
 
   const [permissionsByUser, setPermissionsByUser] = useState(() => {
     const map = {};
-    for (const user of USERS) {
+    for (const user of USER_PERMISSION_USER_ROWS) {
       if (user.id === 1) {
         map[user.id] = [...allPermissionIds];
       } else if (user.id === 2) {
@@ -74,14 +69,14 @@ export default function UserPermissionPage() {
   }, []);
 
   const filteredUsers = useMemo(() => {
-    return USERS.filter((user) => {
+    return USER_PERMISSION_USER_ROWS.filter((user) => {
       if (!search) return true;
       const text = `${user.name} ${user.email} ${user.role}`.toLowerCase();
       return text.includes(search.toLowerCase());
     });
   }, [search]);
 
-  const selected = USERS.find((user) => user.id === selectedUserId) || null;
+  const selected = USER_PERMISSION_USER_ROWS.find((user) => user.id === selectedUserId) || null;
 
   function getUserPermissions(userId) {
     return permissionsByUser[userId] || [];

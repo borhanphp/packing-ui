@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { INTERNAL_ACCOUNT_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -19,22 +20,7 @@ const columns = [
   { key: "shrinkReceivalLabel", label: "Shrink Receival" },
 ];
 
-const initialRows = [
-  {
-    id: 1,
-    name: "Quality Control",
-    description: "Account used for QA discrepancy adjustments.",
-    shrinkApplied: true,
-    shrinkReceivalAccount: false,
-  },
-  {
-    id: 2,
-    name: "Shrink Reserve",
-    description: "Default account for shrink receival workflow.",
-    shrinkApplied: false,
-    shrinkReceivalAccount: true,
-  },
-];
+const initialRows = INTERNAL_ACCOUNT_ROWS;
 
 function toDisplayRow(row) {
   return {

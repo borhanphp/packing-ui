@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { REFERENCE_COUNTRIES_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -21,27 +22,7 @@ const config = {
     { key: "contacts", label: "Contacts" },
     { key: "warnings", label: "Warnings" },
   ],
-  rows: [
-    {
-      id: 1,
-      countryName: "Australia",
-      countryCode: "AU",
-      notesPreview: "Standard documentation applies",
-      contactItems: [
-        { name: "Border Ops AU", phone: "+61 2 9132 0011", email: "ops-au@shipflow.example" },
-        { name: "Customs Support", phone: "+61 2 9132 0099", email: "customs-au@shipflow.example" },
-      ],
-      warningItems: [],
-    },
-    {
-      id: 2,
-      countryName: "New Zealand",
-      countryCode: "NZ",
-      notesPreview: "Special treatment timing",
-      contactItems: [{ name: "Auckland Desk", phone: "+64 9 700 2340", email: "auckland-desk@shipflow.example" }],
-      warningItems: [{ description: "Biosecurity checks can delay release by 1-2 days.", showOnPacks: true }],
-    },
-  ],
+  rows: REFERENCE_COUNTRIES_ROWS,
   formFields: [
     { key: "countryName", label: "Country Name", required: true, placeholder: "e.g. Australia" },
     { key: "countryCode", label: "Country Code", required: true, placeholder: "e.g. AU" },

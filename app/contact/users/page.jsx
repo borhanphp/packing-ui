@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { CONTACT_USER_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -17,11 +18,7 @@ const columns = [
   { key: "status", label: "Status" },
 ];
 
-const initialRows = [
-  { id: 1, name: "Alec Stead", email: "ops@packing.local", role: "Administrator", active: true, password: "", passwordUpdatedAt: "" },
-  { id: 2, name: "Jordan Miles", email: "warehouse@packing.local", role: "Warehouse", active: true, password: "", passwordUpdatedAt: "" },
-  { id: 3, name: "Sam Rivera", email: "finance@packing.local", role: "Read only", active: false, password: "", passwordUpdatedAt: "" },
-];
+const initialRows = CONTACT_USER_ROWS;
 
 function toDisplayRow(row) {
   return {

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { CUSTOMER_CONTACT_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
@@ -20,32 +21,7 @@ const columns = [
   { key: "warningsCount", label: "Warning(s)" },
 ];
 
-const initialRows = [
-  {
-    id: 1,
-    code: "AC001",
-    name: "Agri-Corp Pty Ltd",
-    emails: ["accounts@agricorp.com.au", "admin@agricorp.com.au"],
-    contacts: [{ name: "Sarah Miles", email: "sarah@agricorp.com.au", phone: "+61 7 4000 1122" }],
-    addresses: ["123 Farm Road, Toowoomba QLD 4350"],
-    website: "www.agricorp.com.au",
-    notes: "Preferred morning load slots.",
-    invoicingContact: "Accounts Team - accounts@agricorp.com.au",
-    warnings: [{ warningDescription: "Requires manifest confirmation before dispatch.", showOnPacks: true }],
-  },
-  {
-    id: 2,
-    code: "BN007",
-    name: "BlueNest Foods",
-    emails: ["ops@bluenestfoods.com.au"],
-    contacts: [{ name: "Jordan Lee", email: "jordan@bluenestfoods.com.au", phone: "+61 3 9000 2211" }],
-    addresses: ["18 Rivergate Ave, Brisbane QLD 4000"],
-    website: "",
-    notes: "",
-    invoicingContact: "",
-    warnings: [],
-  },
-];
+const initialRows = CUSTOMER_CONTACT_ROWS;
 
 const emptyContact = () => ({ name: "", email: "", phone: "" });
 const emptyWarning = () => ({ warningDescription: "", showOnPacks: true });

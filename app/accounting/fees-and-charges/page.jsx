@@ -2,39 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { CHARGE_CLASSIFICATIONS, CHARGE_TYPES, FEES_AND_CHARGES_ROWS } from "@/lib/Data";
 import { cn } from "@/lib/utils";
 
 const MOBILE_BREAKPOINT = 900;
-
-const CHARGE_TYPES = [
-  { value: "Per Invoice", label: "Per Invoice" },
-  { value: "Per MT", label: "Per MT" },
-  { value: "Per Container", label: "Per Container" },
-];
-
-const CHARGE_CLASSIFICATIONS = [
-  { value: "revenue", label: "Revenue charge" },
-  { value: "expense", label: "Expense charge" },
-  { value: "both", label: "Both" },
-];
 
 const inputClass =
   "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none ring-blue-100 placeholder:text-slate-400 focus:border-blue-500 focus:ring-2";
 const filterInputClass =
   "w-full rounded-md border border-slate-200/90 bg-white px-2 py-1 text-xs text-slate-800 outline-none placeholder:text-slate-400 focus:border-brand/35 focus:ring-1 focus:ring-brand/25";
 
-const initialFeesAndCharges = [
-  {
-    id: 1,
-    chargeName: "Handling Fee",
-    chargeDescription: "Standard handling and administration",
-    chargeRate: 22,
-    chargeType: "Per Container",
-    applyToAllPacks: true,
-    chargeClassification: "revenue",
-    accountCode: "REV-001",
-  },
-];
+const initialFeesAndCharges = FEES_AND_CHARGES_ROWS;
 
 function getClassLabel(charge) {
   if (charge.chargeClassification === "revenue") return "Revenue";
